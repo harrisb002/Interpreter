@@ -154,15 +154,25 @@ export default function About() {
           nesting of scopes and the hierarchical nature defined in the BNF.
         </li>
       </ul>
-      <h3>🚧 Abstract Syntax Tree (In Progress)</h3>
+      <h3>✅ Abstract Syntax Tree</h3>
       <p>
         Creates an Abstract Syntax Tree (AST) based on the Concrete Syntax Tree
         (CST). An Abstract Syntax Tree is not a clone of a Concrete Syntax Tree.
         Utilizes an LCRS binary tree (Left-Child, Right-Sibling) to store the
         AST. Allows for the display of the resulting AST in breadth-first order.
       </p>
+
+      <h3>✅ Program Execution</h3>
       <p>
-        <em>Not yet implemented.</em>
+        Maintains a stack data structure and a program counter to keep track of
+        the flow-of-control as your program interprets and executes an input
+        program. Uses the symbol table to maintain variable values during
+        program interpretation and execution. Traverses the Abstract Syntax Tree
+        when executing statements, starting at the first statement in the main
+        procedure. The AST contains Boolean and numerical expressions in postfix
+        notation to make it easy to evaluate the expressions during program
+        interpretation and execution. Uses a stack data structure to evaluate
+        the postfix notation expression.
       </p>
     </div>
   );
