@@ -14,7 +14,7 @@ const port = process.env.BLUE_PORT || 10000;
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:10000", "http://localhost:5173", "https://interpreter-5za8.onrender.com"],
+    origin: ["https://interpreter-5za8.onrender.com"],
   })
 );
 
