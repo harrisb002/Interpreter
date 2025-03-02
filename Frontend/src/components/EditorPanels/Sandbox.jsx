@@ -48,11 +48,11 @@ const Sandbox = () => {
         setTests(data);
       } catch (err) {
         console.error("Error fetching tests:", err);
-      }s
+      }
     };
     fetchTests();
   }, []);
-
+  
   /**
    * If language changes => reset snippet & states
    */
