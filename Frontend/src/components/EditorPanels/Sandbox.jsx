@@ -120,7 +120,7 @@ const Sandbox = () => {
 
     if (language === "blue") {
       // call the local /execute-blue-code
-      const res = await fetch(`http://localhost:10000/execute-blue-code/${type}`, {
+      const res = await fetch(`https://interpreter-5za8.onrender.com/execute-blue-code/${type}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sourceCode }),
