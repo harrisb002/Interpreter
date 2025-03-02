@@ -1,0 +1,1 @@
+counter = 101 /* Will this string be displayed? */
