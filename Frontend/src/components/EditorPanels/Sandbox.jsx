@@ -52,7 +52,7 @@ const Sandbox = () => {
     };
     fetchTests();
   }, []);
-  
+
   /**
    * If language changes => reset snippet & states
    */
