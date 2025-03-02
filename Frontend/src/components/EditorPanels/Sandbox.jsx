@@ -43,12 +43,12 @@ const Sandbox = () => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const res = await fetch("http://localhost:10000/api/tests");
+        const res = await fetch("https://interpreter-5za8.onrender.com/api/tests");
         const data = await res.json();
         setTests(data);
       } catch (err) {
         console.error("Error fetching tests:", err);
-      }
+      }s
     };
     fetchTests();
   }, []);

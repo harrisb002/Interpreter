@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+builds
+.clang-format
 
 # Editor directories and files
 .vscode/*
