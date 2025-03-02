@@ -1,6 +1,8 @@
 # C-like Language Interpreter Project
  - Visit Blue Sandbox Here: [https://interpreter-5za8.onrender.com/](https://interpreter-5za8.onrender.com/)
 
+<img src="./public/IDE.png" width="900px" height="450px" />
+
 ## Overview
 
 The goal of this project was to build an interpreter for a C-like language by following a comprehensive development process. This process includes several critical stages, each contributing to the interpreter's capability to parse and execute C-like code efficiently.
@@ -16,6 +18,28 @@ The development stages were:
 Each stage was designed to address a specific aspect of language interpretation, from preprocessing the source code to executing it.
 
 ## Implemented Features
+
+### Identifier Analysis
+This feature provides an in-depth view of how the interpreter processes code by displaying essential structures such as interpreter tokens, the Concrete Syntax Tree (CST), Abstract Syntax Tree (AST), and Symbol Tables. It allows users to visualize how their code is parsed and understood by the interpreter.
+
+<img src="./public/Identifiers.gif" width="800px" height="450px" />
+
+### Multi-Language Execution
+Users can execute code in various programming languages beyond the custom C-like language by leveraging the Piston API. Supported languages include JavaScript, Python, C#, and Java, allowing for flexible experimentation within the sandbox.
+
+<img src="./public/runLanguages.gif" width="800px" height="450px" />
+
+### Single Test Execution
+This feature enables users to run individual test cases to validate specific functionalities of the Blue interpreter. When a test is executed, the system compares the actual output against expected results and displays the outcome.
+
+<img src="./public/runTest.gif" width="800px" height="450px" />
+
+### Full Test Suite Execution
+Users can execute the entire test suite, running all test cases consecutively. This provides a comprehensive overview of the interpreter’s performance, highlighting which tests pass or fail.
+
+<img src="./public/testSuite.gif" width="800px" height="450px" />
+
+# Docs
 
 ### ✅ Comment Removal for a C-like Programming Language
 
