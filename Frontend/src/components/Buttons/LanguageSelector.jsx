@@ -1,6 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-// Interpreter/Frontend/src/components/Buttons/LanguageSelector.jsx
-////////////////////////////////////////////////////////////////////////////////////////////
 import React from "react";
 import {
   Box,
@@ -13,7 +10,6 @@ import {
 } from "@chakra-ui/react";
 import { LANGUAGE_VERSIONS } from "../../Constants/languages";
 
-// Transform LANGUAGE_VERSIONS => an array of [language, version]
 const languages = Object.entries(LANGUAGE_VERSIONS);
 const ACTIVE_COLOR = "blue.400";
 
