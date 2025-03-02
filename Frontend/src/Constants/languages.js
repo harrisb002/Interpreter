@@ -1,8 +1,8 @@
 export const LANGUAGE_VERSIONS = {
   blue: "1.0.0",
-  javascript: "18.16.0",
+  javascript: "18.15.0",
   python: "3.10.0",
-  java: "17.0.1",
+  java: "15.0.2",
   csharp: "6.12.0",
 };
 
