@@ -1,16 +1,71 @@
+////////////////////////////////////////////////////////////////////////////////////////////
+// Interpreter/Frontend/src/Constants/languages.js
+////////////////////////////////////////////////////////////////////////////////////////////
+
 export const LANGUAGE_VERSIONS = {
-  cpp: "1.0.0",
-  javascript: "18.15.0",
+  // Fake version for your custom 'blue'
+  blue: "1.0.0",
+  javascript: "18.16.0",
   python: "3.10.0",
-  java: "15.0.2",
+  java: "17.0.1",
   csharp: "6.12.0",
 };
 
 export const CODE_SNIPPETS = {
-  cpp: `\nprocedure main (void)\n{\n\tint n;\n\tint sum;\n\n\tn = 100;\n\tsum = sum_of_first_n_squares(n);\n\tprintf("sum of the squares of the first %d numbers = %d\\n", n, sum);\n\treturn sum;\n}\n\nfunction int sum_of_first_n_squares(int n)\n{\n\tint sum;\n\n\tsum = 0;\n\tif (n >= 1)\n\t{\n\t\tsum = n * (n + 1) * (2 * n + 1) / 6;\n\t}\n\treturn sum;\n}\n`,
-  javascript: `\nfunction greet(name) {\n\tconsole.log("Hello, " + name + "!");\n}\n\ngreet("Seawolf in JS!");\n`,
-  python: `\ndef greet(name):\n\tprint("Hello, " + name + "!")\n\ngreet("Hello Seawolf in Python!")\n`,
-  java: `\npublic class HelloWorld {\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println("Hello Seawolf in Java!");\n\t}\n}\n`,
-  csharp:
-    'using System;\n\nnamespace HelloWorld\n{\n\tclass Hello { \n\t\tstatic void Main(string[] args) {\n\t\t\tConsole.WriteLine("Hello Seawolf in C#!");\n\t\t}\n\t}\n}\n',
+  blue: `
+procedure main (void)
+{
+  int n;
+  int sum;
+
+  n = 100;
+  sum = sum_of_first_n_squares(n);
+  printf("sum of the squares of the first %d numbers = %d\\n", n, sum);
+  return sum;
+}
+
+function int sum_of_first_n_squares(int n)
+{
+  int sum;
+
+  sum = 0;
+  if (n >= 1)
+  {
+    sum = n * (n + 1) * (2 * n + 1) / 6;
+  }
+  return sum;
+}
+`,
+  javascript: `
+function greet(name) {
+  console.log("Hello, " + name + "!");
+}
+
+greet("Seawolf in JS!");
+`,
+  python: `
+def greet(name):
+  print("Hello, " + name + "!")
+
+greet("Hello Seawolf in Python!")
+`,
+  java: `
+public class HelloWorld {
+  public static void main(String[] args) {
+    System.out.println("Hello Seawolf in Java!");
+  }
+}
+`,
+  csharp: `
+using System;
+
+namespace HelloWorld
+{
+  class Hello {
+    static void Main(string[] args) {
+      Console.WriteLine("Hello Seawolf in C#!");
+    }
+  }
+}
+`,
 };
