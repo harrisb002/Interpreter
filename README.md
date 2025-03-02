@@ -29,11 +29,6 @@ Users can execute code in various programming languages beyond the custom C-like
 
 <img src="./public/runLanguages.gif" width="800px" height="450px" />
 
-### Single Test Execution
-This feature enables users to run individual test cases to validate specific functionalities of the Blue interpreter. When a test is executed, the system compares the actual output against expected results and displays the outcome.
-
-<img src="./public/runTest.gif" width="800px" height="450px" />
-
 ### Full Test Suite Execution
 Users can execute the entire test suite, running all test cases consecutively. This provides a comprehensive overview of the interpreter’s performance, highlighting which tests pass or fail.
 
