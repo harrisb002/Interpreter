@@ -3,24 +3,14 @@ const path = require("path");
 
 const mainTestDir = path.join(__dirname, "../Testing");
 
-/**
- * parseFolderName
- * Converts folder name like "Test_1" into "Test 1"
- */
 function parseFolderName(folder) {
   return folder.replace("_", " ");
 }
 
-/**
- * normalizeLines
- * - Splits the content by '\n'
- * - Trims trailing whitespace from each line
- * - Joins them back with '\n'
- */
 function normalizeLines(content) {
   return content
     .split("\n")
-    .map(line => line.trimEnd()) // remove trailing spaces/tabs
+    .map(line => line.trimEnd())
     .join("\n");
 }
 
@@ -50,7 +40,6 @@ function collectTests() {
             const inputRaw = fs.readFileSync(path.join(inputPath, inputFile), "utf8");
             const inputContent = normalizeLines(inputRaw);
 
-            // Normalize output
             let outputContent = "";
             if (outputFiles[i]) {
               const outputRaw = fs.readFileSync(
