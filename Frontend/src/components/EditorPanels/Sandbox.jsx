@@ -11,49 +11,49 @@ import Output from "./Output";
 
 /**
  * Sandbox
- * - Uses the remote domain for both tests & executes
- * - Continues even if subtests have an error (thanks to isError in your backend)
+ * - Requests tests from `https://interpreter-5za8.onrender.com/api/tests`
+ * - If language='blue', executes code with `https://interpreter-5za8.onrender.com/execute-blue-code/:type`
+ * - Otherwise uses piston-based solution
  */
 const Sandbox = () => {
   const editorRef = useRef(null);
 
-  // Language defaults to 'blue'
+  // Default to 'blue'
   const [language, setLanguage] = useState("blue");
   const [code, setCode] = useState(CODE_SNIPPETS.blue || "");
 
-  // Tests state
   const [tests, setTests] = useState({});
   const [selectedTest, setSelectedTest] = useState(null);
   const [originalTestCode, setOriginalTestCode] = useState("");
   const [isTestUnmodified, setIsTestUnmodified] = useState(false);
 
-  // Output
+  // Output data
   const [output, setOutput] = useState([]);
   const [isError, setIsError] = useState(false);
 
-  // Loading/spinner
+  // Loading & spinner states
   const [isLoading, setIsLoading] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
 
   /**
-   * Fetch tests from the remote domain
+   * On mount, fetch tests from remote server
    */
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        // Use your deployed domain for /api/tests
         const res = await fetch("https://interpreter-5za8.onrender.com/api/tests");
         
-        // If the server is not returning JSON, this might fail
+        // If server doesn't respond with 200-299, let's see what it returned
         if (!res.ok) {
-          // If an error status, read text for debugging
           const text = await res.text();
-          console.error("Failed to fetch tests, status:", res.status, "body:", text);
+          console.error("Failed to fetch tests; Status:", res.status, "Body:", text);
           return;
         }
 
+        // Attempt parse JSON
         const data = await res.json();
         setTests(data);
+
       } catch (err) {
         console.error("Error fetching tests:", err);
       }
@@ -62,7 +62,7 @@ const Sandbox = () => {
   }, []);
 
   /**
-   * When language changes, reset code & test
+   * If language changes => reset snippet & test states
    */
   useEffect(() => {
     setCode(CODE_SNIPPETS[language] || "");
@@ -74,7 +74,7 @@ const Sandbox = () => {
   }, [language]);
 
   /**
-   * Delayed spinner => show after 3s
+   * Delayed spinner => show after 3s if still loading
    */
   useEffect(() => {
     let timer;
@@ -86,25 +86,19 @@ const Sandbox = () => {
     return () => clearTimeout(timer);
   }, [isLoading]);
 
-  /**
-   * Editor mount
-   */
+  // Editor mount
   const onMount = (editor) => {
     editorRef.current = editor;
     editor.focus();
   };
 
-  /**
-   * Handle code changes => check if still matches test
-   */
+  // If code changes, see if it matches the test exactly
   const handleCodeChange = (val) => {
     setCode(val);
     setIsTestUnmodified(selectedTest && val === originalTestCode);
   };
 
-  /**
-   * Test selection
-   */
+  // When user selects a test
   const handleTestSelect = (testName, testCode) => {
     setSelectedTest(testName);
     setCode(testCode);
@@ -114,28 +108,26 @@ const Sandbox = () => {
     setIsError(false);
   };
 
-  /**
-   * 'blue' => highlight as csharp
-   */
+  // If language='blue', highlight csharp in the editor
   const getMonacoLanguage = () => (language === "blue" ? "csharp" : language);
 
   /**
-   * runSingleTest => calls your remote domain if language='blue'
+   * runSingleTest => calls remote domain if 'blue'
    */
   const runSingleTest = async (sourceCode, type) => {
     let lines = [];
     let errorFlag = false;
 
     if (language === "blue") {
-      // Use your remote domain
+      // post to your remote server
       const res = await fetch(`https://interpreter-5za8.onrender.com/execute-blue-code/${type}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sourceCode }),
       });
 
-      // If the server isn't returning JSON properly, this might fail
-      const json = await res.json();
+      // if server doesn't respond with valid JSON => parse error
+      const json = await res.json(); 
       if (json.isError) {
         errorFlag = true;
         lines = json.stderr ? json.stderr.split("\n") : [];
@@ -143,7 +135,7 @@ const Sandbox = () => {
         lines = json.output ? json.output.split("\n") : [];
       }
     } else {
-      // Non-blue => use your Piston function
+      // Non-blue => piston
       const pistonRes = await executeCode(language, sourceCode);
       if (pistonRes.run.stderr) {
         errorFlag = true;
@@ -156,9 +148,7 @@ const Sandbox = () => {
     return { lines, errorFlag };
   };
 
-  /**
-   * Compare lines ignoring trailing whitespace
-   */
+  // Compare lines ignoring trailing whitespace
   const compareTrimmedLines = (actual, expected) => {
     if (actual.length !== expected.length) return false;
     for (let i = 0; i < actual.length; i++) {
@@ -169,9 +159,7 @@ const Sandbox = () => {
     return true;
   };
 
-  /**
-   * Get lines of expected output for a subTest
-   */
+  // get lines of expected output from the loaded tests
   const getExpectedLines = (testKey) => {
     for (const groupName of Object.keys(tests)) {
       if (tests[groupName][testKey]) {
@@ -181,9 +169,7 @@ const Sandbox = () => {
     return [];
   };
 
-  /**
-   * onExecuteType => run single test or tokens/AST...
-   */
+  // onExecuteType => run single test or tokens/cst/ast...
   const onExecuteType = async (type) => {
     const currentCode = editorRef.current?.getValue() || "";
     if (!currentCode) return;
@@ -193,7 +179,7 @@ const Sandbox = () => {
       const { lines, errorFlag } = await runSingleTest(currentCode, type);
       setIsError(errorFlag);
 
-      // If 'run' + 'blue' + test unmodified => compare
+      // If it's a test run & code matches selected test => compare
       if (type === "run" && language === "blue" && selectedTest && isTestUnmodified) {
         const expected = getExpectedLines(selectedTest);
         const pass = !errorFlag && compareTrimmedLines(lines, expected);
@@ -217,11 +203,9 @@ const Sandbox = () => {
     }
   };
 
-  /**
-   * runAllTestsIncremental => run every subtest in sequence
-   */
+  // runAllTestsIncremental => run all subtests if language='blue'
   const runAllTestsIncremental = async () => {
-    if (language !== "blue") return; // only for 'blue'
+    if (language !== "blue") return;
     setIsLoading(true);
     setOutput([]);
     setIsError(false);
@@ -230,7 +214,7 @@ const Sandbox = () => {
       let passCount = 0;
       let failCount = 0;
 
-      // gather all subtests
+      // Flatten all subtests
       const allSubtests = [];
       for (const groupName of Object.keys(tests)) {
         for (const subTestKey of Object.keys(tests[groupName])) {
@@ -238,7 +222,7 @@ const Sandbox = () => {
         }
       }
 
-      // run each subtest
+      // run each
       for (const { subTestKey, testData } of allSubtests) {
         const { lines, errorFlag } = await runSingleTest(testData.input, "run");
         const expected = getExpectedLines(subTestKey);
@@ -256,7 +240,6 @@ const Sandbox = () => {
             `Got => ${lines.join(" | ")}`
           ].join("\n");
         }
-
         setOutput((prev) => [...prev, resultLine]);
       }
 
@@ -267,6 +250,7 @@ const Sandbox = () => {
         `=== Summary: ${passCount} passed | ${failCount} failed | ${total} total ===`
       ]);
       setIsError(failCount > 0);
+
     } catch (error) {
       setIsError(true);
       setOutput([error.message || "Unable to run all tests"]);
@@ -278,6 +262,7 @@ const Sandbox = () => {
   return (
     <Box>
       <HStack spacing={4}>
+        {/* LEFT Panel: Editor + Tests */}
         <Box w="50%">
           <LanguageSelector language={language} onSelect={setLanguage} />
 
@@ -296,14 +281,12 @@ const Sandbox = () => {
             theme="vs-dark"
             language={getMonacoLanguage()}
             value={code}
-            onMount={(editor) => {
-              editorRef.current = editor;
-              editor.focus();
-            }}
+            onMount={onMount}
             onChange={handleCodeChange}
           />
         </Box>
 
+        {/* RIGHT Panel: Execution + Output */}
         <Box w="50%">
           {showSpinner && (
             <Text fontSize="sm" color="yellow.200" mb={2}>
