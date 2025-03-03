@@ -1,7 +1,3 @@
-/******************************************************************************
- * Sandbox.jsx
- * Your React code that fetches tests & executes code from the "api" domain
- ******************************************************************************/
 import React, { useRef, useState, useEffect } from "react";
 import { Box, HStack, Spinner, Text } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
@@ -15,7 +11,7 @@ import Output from "./Output";
 const Sandbox = () => {
   const editorRef = useRef(null);
 
-  // Default to 'blue'
+  // Language defaults to 'blue'
   const [language, setLanguage] = useState("blue");
   const [code, setCode] = useState(CODE_SNIPPETS.blue || "");
 
@@ -33,17 +29,17 @@ const Sandbox = () => {
   const [showSpinner, setShowSpinner] = useState(false);
 
   /**
-   * On mount, fetch tests from "interpreter-5za8-api" domain
+   * Fetch tests on mount from https://interpreter-5za8-api.onrender.com
    */
   useEffect(() => {
     const fetchTests = async () => {
       try {
         const res = await fetch("https://interpreter-5za8-api.onrender.com/api/tests");
 
+        // If server responded with an error code or HTML, log for debugging
         if (!res.ok) {
-          // Debug if server returns error or HTML
           const text = await res.text();
-          console.error("Failed to fetch tests. Status:", res.status, text);
+          console.error("Failed to fetch tests. Status:", res.status, "Body:", text);
           return;
         }
 
@@ -57,9 +53,7 @@ const Sandbox = () => {
     fetchTests();
   }, []);
 
-  /**
-   * If language changes => reset code & test states
-   */
+  // If language changes => reset snippet & test states
   useEffect(() => {
     setCode(CODE_SNIPPETS[language] || "");
     setSelectedTest(null);
@@ -69,9 +63,7 @@ const Sandbox = () => {
     setIsError(false);
   }, [language]);
 
-  /**
-   * Delayed spinner => show after 3s if loading
-   */
+  // Delayed spinner => show after 3s if loading
   useEffect(() => {
     let timer;
     if (isLoading) {
@@ -82,19 +74,19 @@ const Sandbox = () => {
     return () => clearTimeout(timer);
   }, [isLoading]);
 
-  // Editor mount
+  // Monaco Editor mount
   const onMount = (editor) => {
     editorRef.current = editor;
     editor.focus();
   };
 
-  // If code changes, see if it matches original test code
+  // If code changes, check if it matches the test code
   const handleCodeChange = (val) => {
     setCode(val);
     setIsTestUnmodified(selectedTest && val === originalTestCode);
   };
 
-  // handle test selection
+  // User selects a test from the dropdown
   const handleTestSelect = (testName, testCode) => {
     setSelectedTest(testName);
     setCode(testCode);
@@ -104,25 +96,24 @@ const Sandbox = () => {
     setIsError(false);
   };
 
-  // highlight 'blue' as csharp in Monaco
+  // If language='blue', highlight csharp in the editor
   const getMonacoLanguage = () => (language === "blue" ? "csharp" : language);
 
   /**
-   * runSingleTest => calls the remote domain if language='blue'
+   * runSingleTest => calls https://interpreter-5za8-api.onrender.com for 'blue'
    */
   const runSingleTest = async (sourceCode, type) => {
     let lines = [];
     let errorFlag = false;
 
     if (language === "blue") {
-      // Post to the "interpreter-5za8-api" domain
+      // Post to your Node server
       const res = await fetch(`https://interpreter-5za8-api.onrender.com/execute-blue-code/${type}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sourceCode }),
       });
 
-      // parse JSON
       const json = await res.json();
       if (json.isError) {
         errorFlag = true;
@@ -131,7 +122,7 @@ const Sandbox = () => {
         lines = json.output ? json.output.split("\n") : [];
       }
     } else {
-      // for non-blue, use piston
+      // If non-blue => use Piston
       const pistonRes = await executeCode(language, sourceCode);
       if (pistonRes.run.stderr) {
         errorFlag = true;
@@ -144,24 +135,18 @@ const Sandbox = () => {
     return { lines, errorFlag };
   };
 
-  /**
-   * Compare lines ignoring trailing whitespace
-   */
+  // Compare lines ignoring trailing spaces
   const compareTrimmedLines = (actual, expected) => {
     if (actual.length !== expected.length) return false;
     for (let i = 0; i < actual.length; i++) {
       const a = actual[i].trimEnd();
       const e = expected[i].trimEnd();
-      if (a !== e) {
-        return false;
-      }
+      if (a !== e) return false;
     }
     return true;
   };
 
-  /**
-   * retrieve lines for the selected test
-   */
+  // Return lines for the selected test
   const getExpectedLines = (testKey) => {
     for (const groupName of Object.keys(tests)) {
       if (tests[groupName][testKey]) {
@@ -172,7 +157,7 @@ const Sandbox = () => {
   };
 
   /**
-   * onExecuteType => run code / tokens / AST etc.
+   * onExecuteType => run single test or tokens/cst/etc.
    */
   const onExecuteType = async (type) => {
     const currentCode = editorRef.current?.getValue() || "";
@@ -183,7 +168,7 @@ const Sandbox = () => {
       const { lines, errorFlag } = await runSingleTest(currentCode, type);
       setIsError(errorFlag);
 
-      // if run + 'blue' + test chosen & unmodified => compare
+      // If it's a test run & code matches selected test => compare
       if (type === "run" && language === "blue" && selectedTest && isTestUnmodified) {
         const expected = getExpectedLines(selectedTest);
         const pass = !errorFlag && compareTrimmedLines(lines, expected);
@@ -196,7 +181,7 @@ const Sandbox = () => {
           setOutput(["❌ Test Failed", "Expected:", ...expected, "Got:", ...lines]);
         }
       } else {
-        // normal run
+        // normal run (no test compare)
         setOutput(lines);
       }
     } catch (err) {
@@ -208,7 +193,7 @@ const Sandbox = () => {
   };
 
   /**
-   * runAllTestsIncremental => run every subtest if language='blue'
+   * runAllTestsIncremental => runs all subtests if language='blue'
    */
   const runAllTestsIncremental = async () => {
     if (language !== "blue") return;
@@ -220,6 +205,7 @@ const Sandbox = () => {
       let passCount = 0;
       let failCount = 0;
 
+      // Gather subtests
       const allSubtests = [];
       for (const groupName of Object.keys(tests)) {
         for (const subTestKey of Object.keys(tests[groupName])) {
@@ -247,6 +233,7 @@ const Sandbox = () => {
         setOutput((prev) => [...prev, resultLine]);
       }
 
+      // Final summary
       const total = passCount + failCount;
       setOutput((prev) => [...prev, `=== Summary: ${passCount} passed | ${failCount} failed | ${total} total ===`]);
       setIsError(failCount > 0);
