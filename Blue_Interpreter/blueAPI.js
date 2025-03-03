@@ -8,16 +8,28 @@ const dotenv = require("dotenv");
 const collectTests = require("./collectTests");
 
 dotenv.config();
+
 const app = express();
 const port = process.env.BLUE_PORT || 10000;
 
+// Parse JSON bodies
 app.use(express.json());
+
+// Allow requests from your deployed site
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5173", "https://interpreter-5za8.onrender.com"],
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "https://interpreter-5za8.onrender.com",
+    ],
   })
 );
 
+/**
+ * POST /execute-blue-code/:type
+ * Runs the Blue interpreter with the code in 'tempSourceCode.c'
+ */
 app.post("/execute-blue-code/:type", async (req, res) => {
   const { sourceCode } = req.body;
   const { type } = req.params;
@@ -31,7 +43,6 @@ app.post("/execute-blue-code/:type", async (req, res) => {
 
     exec(command, (error, stdout, stderr) => {
       if (error) {
-        // 200 with an error flag
         return res.json({
           isError: true,
           output: "",
@@ -39,11 +50,11 @@ app.post("/execute-blue-code/:type", async (req, res) => {
         });
       }
 
-      // If no error, return normal data
+      // If success
       return res.json({
         isError: false,
         output: stdout,
-        stderr: stderr, 
+        stderr: stderr,
       });
     });
   } catch (error) {
@@ -55,12 +66,20 @@ app.post("/execute-blue-code/:type", async (req, res) => {
   }
 });
 
-/** Return all tests */
+/**
+ * GET /api/tests
+ * Return all tests as JSON
+ */
 app.get("/api/tests", (req, res) => {
-  const tests = collectTests();
-  res.json(tests);
+  try {
+    const tests = collectTests();
+    res.json(tests); // Must be valid JSON
+  } catch (err) {
+    res.json({ isError: true, stderr: `Failed to load tests: ${err.message}` });
+  }
 });
 
+// Start the server – Render will override the port env var if needed
 app.listen(port, "0.0.0.0", () =>
   console.log(`Server running on port ${port}`.cyan)
 );

@@ -11,39 +11,47 @@ import Output from "./Output";
 
 /**
  * Sandbox
- * - Language defaults to 'blue'
- * - Single test or 'Run All Tests' for 'blue' only
- * - Continues even if subtests error (thanks to 200 + isError in backend)
- * - Delayed spinner only after 3s
+ * - Uses the remote domain for both tests & executes
+ * - Continues even if subtests have an error (thanks to isError in your backend)
  */
 const Sandbox = () => {
   const editorRef = useRef(null);
 
-  // Language & code
+  // Language defaults to 'blue'
   const [language, setLanguage] = useState("blue");
   const [code, setCode] = useState(CODE_SNIPPETS.blue || "");
 
-  // Tests
+  // Tests state
   const [tests, setTests] = useState({});
   const [selectedTest, setSelectedTest] = useState(null);
   const [originalTestCode, setOriginalTestCode] = useState("");
   const [isTestUnmodified, setIsTestUnmodified] = useState(false);
 
-  // Execution states
+  // Output
   const [output, setOutput] = useState([]);
   const [isError, setIsError] = useState(false);
 
-  // Spinner
+  // Loading/spinner
   const [isLoading, setIsLoading] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
 
   /**
-   * Fetch tests from backend on mount
+   * Fetch tests from the remote domain
    */
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const res = await fetch("http://localhost:10000/api/tests");
+        // Use your deployed domain for /api/tests
+        const res = await fetch("https://interpreter-5za8.onrender.com/api/tests");
+        
+        // If the server is not returning JSON, this might fail
+        if (!res.ok) {
+          // If an error status, read text for debugging
+          const text = await res.text();
+          console.error("Failed to fetch tests, status:", res.status, "body:", text);
+          return;
+        }
+
         const data = await res.json();
         setTests(data);
       } catch (err) {
@@ -54,7 +62,7 @@ const Sandbox = () => {
   }, []);
 
   /**
-   * If language changes => reset snippet & states
+   * When language changes, reset code & test
    */
   useEffect(() => {
     setCode(CODE_SNIPPETS[language] || "");
@@ -66,7 +74,7 @@ const Sandbox = () => {
   }, [language]);
 
   /**
-   * Delayed spinner => show after 3s if still loading
+   * Delayed spinner => show after 3s
    */
   useEffect(() => {
     let timer;
@@ -87,7 +95,7 @@ const Sandbox = () => {
   };
 
   /**
-   * Code changes => check if code still matches the test
+   * Handle code changes => check if still matches test
    */
   const handleCodeChange = (val) => {
     setCode(val);
@@ -95,7 +103,7 @@ const Sandbox = () => {
   };
 
   /**
-   * Single test selection
+   * Test selection
    */
   const handleTestSelect = (testName, testCode) => {
     setSelectedTest(testName);
@@ -107,26 +115,27 @@ const Sandbox = () => {
   };
 
   /**
-   * 'blue' => 'csharp' for Monaco editor
+   * 'blue' => highlight as csharp
    */
   const getMonacoLanguage = () => (language === "blue" ? "csharp" : language);
 
   /**
-   * If the backend sets isError, or if it's Piston with stderr => errorFlag
+   * runSingleTest => calls your remote domain if language='blue'
    */
   const runSingleTest = async (sourceCode, type) => {
     let lines = [];
     let errorFlag = false;
 
     if (language === "blue") {
-      // call the local /execute-blue-code
-      const res = await fetch(`http://localhost:10000/execute-blue-code/${type}`, {
+      // Use your remote domain
+      const res = await fetch(`https://interpreter-5za8.onrender.com/execute-blue-code/${type}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sourceCode }),
       });
-      const json = await res.json();
 
+      // If the server isn't returning JSON properly, this might fail
+      const json = await res.json();
       if (json.isError) {
         errorFlag = true;
         lines = json.stderr ? json.stderr.split("\n") : [];
@@ -134,7 +143,7 @@ const Sandbox = () => {
         lines = json.output ? json.output.split("\n") : [];
       }
     } else {
-      // Non-blue => Piston
+      // Non-blue => use your Piston function
       const pistonRes = await executeCode(language, sourceCode);
       if (pistonRes.run.stderr) {
         errorFlag = true;
@@ -143,6 +152,7 @@ const Sandbox = () => {
         lines = pistonRes.run.output.split("\n");
       }
     }
+
     return { lines, errorFlag };
   };
 
@@ -160,7 +170,7 @@ const Sandbox = () => {
   };
 
   /**
-   * get lines of expected output for a subTest
+   * Get lines of expected output for a subTest
    */
   const getExpectedLines = (testKey) => {
     for (const groupName of Object.keys(tests)) {
@@ -228,10 +238,9 @@ const Sandbox = () => {
         }
       }
 
+      // run each subtest
       for (const { subTestKey, testData } of allSubtests) {
         const { lines, errorFlag } = await runSingleTest(testData.input, "run");
-
-        // check if lines match the expected lines ignoring trailing whitespace
         const expected = getExpectedLines(subTestKey);
         const pass = !errorFlag && compareTrimmedLines(lines, expected);
 
