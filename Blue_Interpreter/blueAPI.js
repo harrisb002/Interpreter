@@ -1,3 +1,7 @@
+/******************************************************************************
+ * server.js
+ * Node/Express server for handling test retrieval & Blue code execution
+ ******************************************************************************/
 const express = require("express");
 const cors = require("cors");
 const colors = require("colors");
@@ -5,22 +9,35 @@ const fs = require("fs").promises;
 const { exec } = require("child_process");
 const path = require("path");
 const dotenv = require("dotenv");
-const collectTests = require("./collectTests");
+const collectTests = require("./collectTests"); // your local function
 
 dotenv.config();
-const app = express();
 
-const port = process.env.BLUE_PORT || 10000;
+const app = express();
+// Render typically sets PORT for you. 
+// If your environment uses BLUE_PORT, fallback to 10000
+const port = process.env.PORT || process.env.BLUE_PORT || 10000;
+
+// Parse JSON bodies
 app.use(express.json());
 
+// CORS to allow requests from your front-end domain
 app.use(
   cors({
     origin: [
-      "https://interpreter-5za8-api.onrender.com",
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "https://interpreter-5za8.onrender.com", 
+      // If your front-end is also at some-other-domain, add it here
     ],
   })
 );
 
+/**
+ * POST /execute-blue-code/:type
+ * e.g. /execute-blue-code/run, /execute-blue-code/tokens, etc.
+ * Writes code to a temp file and runs ./main with the file + type
+ */
 app.post("/execute-blue-code/:type", async (req, res) => {
   const { sourceCode } = req.body;
   const { type } = req.params;
@@ -34,6 +51,7 @@ app.post("/execute-blue-code/:type", async (req, res) => {
 
     exec(command, (error, stdout, stderr) => {
       if (error) {
+        // Return JSON with isError for your front-end
         return res.json({
           isError: true,
           output: "",
@@ -41,6 +59,7 @@ app.post("/execute-blue-code/:type", async (req, res) => {
         });
       }
 
+      // No error
       return res.json({
         isError: false,
         output: stdout,
@@ -48,6 +67,7 @@ app.post("/execute-blue-code/:type", async (req, res) => {
       });
     });
   } catch (error) {
+    // If writing file fails
     res.json({
       isError: true,
       output: "",
@@ -56,15 +76,23 @@ app.post("/execute-blue-code/:type", async (req, res) => {
   }
 });
 
+/**
+ * GET /api/tests
+ * Return all tests in JSON (via your collectTests() function)
+ */
 app.get("/api/tests", (req, res) => {
   try {
     const tests = collectTests();
     res.json(tests);
   } catch (err) {
-    res.json({ isError: true, stderr: `Failed to load tests: ${err.message}` });
+    res.json({
+      isError: true,
+      stderr: `Failed to load tests: ${err.message}`,
+    });
   }
 });
 
+// Start server
 app.listen(port, "0.0.0.0", () => {
   console.log(`Server running on port ${port}`.cyan);
 });
