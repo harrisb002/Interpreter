@@ -37,25 +37,27 @@ app.post("/execute-blue-code/:type", async (req, res) => {
   const { sourceCode } = req.body;
   const { type } = req.params;
 
-  const filePath = path.join(__dirname, "tempSourceCode.c");
-  const command = `./main ${filePath} ${type}`;
+  // We'll store the code in Blue_Interpreter/tempSourceCode.c
+  const filePath = path.join(__dirname, "Blue_Interpreter", "tempSourceCode.c");
+
+  // Build an absolute path to the 'main' executable
+  const interpreterPath = path.join(__dirname, "Blue_Interpreter", "main");
+
+  // Then create the command string
+  const command = `${interpreterPath} ${filePath} ${type}`;
 
   try {
-    // Write the code to tempSourceCode.c
     await fs.writeFile(filePath, sourceCode);
     console.log("Source code written to file:", filePath);
 
-    // Exec your custom Blue interpreter
     exec(command, (error, stdout, stderr) => {
       if (error) {
-        // Return JSON with isError if there's an error
         return res.json({
           isError: true,
           output: "",
           stderr: `Command failed: ${error.message}\n${stderr}`,
         });
       }
-      // Return success if no error
       return res.json({
         isError: false,
         output: stdout,
@@ -63,7 +65,6 @@ app.post("/execute-blue-code/:type", async (req, res) => {
       });
     });
   } catch (error) {
-    // If writing file fails or other internal error
     res.json({
       isError: true,
       output: "",
@@ -71,6 +72,7 @@ app.post("/execute-blue-code/:type", async (req, res) => {
     });
   }
 });
+
 
 /**
  * GET /api/tests
