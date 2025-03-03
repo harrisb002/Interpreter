@@ -1,13 +1,23 @@
-// ***************************************************
-// * Test Program 1 *
-// ***************************************************
+
 procedure main (void)
 {
-    int counter;
+  int n;
+  int sum;
 
-    counter = 2;
-/*
-  counter = 100;
-*/
-    printf ("counter = %d\n", counter);
+  n = 100;
+  sum = sum_of_first_n_squares(n);
+  printf("sum of the squares of the first %d numbers = %d\n", n, sum);
+  return sum;
+}
+
+function int sum_of_first_n_squares(int n)
+{
+  int sum;
+
+  sum = 0;
+  if (n >= 1)
+  {
+    sum = n * (n + 1) * (2 * n + 1) / 6;
+  }
+  return sum;
 }
