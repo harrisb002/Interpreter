@@ -9,12 +9,6 @@ import TestSelector from "../Buttons/TestSelector";
 import CodeExecutionButtons from "../Buttons/CodeExecutionButtons";
 import Output from "./Output";
 
-/**
- * Sandbox
- * - Requests tests from `https://interpreter-5za8.onrender.com/api/tests`
- * - If language='blue', executes code with `https://interpreter-5za8.onrender.com/execute-blue-code/:type`
- * - Otherwise uses piston-based solution
- */
 const Sandbox = () => {
   const editorRef = useRef(null);
 
@@ -41,19 +35,25 @@ const Sandbox = () => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const res = await fetch("https://interpreter-5za8.onrender.com/api/tests");
-        
+        const res = await fetch(
+          "https://interpreter-5za8-api.onrender.com/api/tests"
+        );
+
         // If server doesn't respond with 200-299, let's see what it returned
         if (!res.ok) {
           const text = await res.text();
-          console.error("Failed to fetch tests; Status:", res.status, "Body:", text);
+          console.error(
+            "Failed to fetch tests; Status:",
+            res.status,
+            "Body:",
+            text
+          );
           return;
         }
 
         // Attempt parse JSON
         const data = await res.json();
         setTests(data);
-
       } catch (err) {
         console.error("Error fetching tests:", err);
       }
@@ -120,14 +120,17 @@ const Sandbox = () => {
 
     if (language === "blue") {
       // post to your remote server
-      const res = await fetch(`https://interpreter-5za8.onrender.com/execute-blue-code/${type}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sourceCode }),
-      });
+      const res = await fetch(
+        `https://interpreter-5za8-api.onrender.com/execute-blue-code/${type}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sourceCode }),
+        }
+      );
 
       // if server doesn't respond with valid JSON => parse error
-      const json = await res.json(); 
+      const json = await res.json();
       if (json.isError) {
         errorFlag = true;
         lines = json.stderr ? json.stderr.split("\n") : [];
@@ -180,7 +183,12 @@ const Sandbox = () => {
       setIsError(errorFlag);
 
       // If it's a test run & code matches selected test => compare
-      if (type === "run" && language === "blue" && selectedTest && isTestUnmodified) {
+      if (
+        type === "run" &&
+        language === "blue" &&
+        selectedTest &&
+        isTestUnmodified
+      ) {
         const expected = getExpectedLines(selectedTest);
         const pass = !errorFlag && compareTrimmedLines(lines, expected);
 
@@ -189,7 +197,13 @@ const Sandbox = () => {
           setIsError(false);
         } else {
           setIsError(true);
-          setOutput(["❌ Test Failed", "Expected:", ...expected, "Got:", ...lines]);
+          setOutput([
+            "❌ Test Failed",
+            "Expected:",
+            ...expected,
+            "Got:",
+            ...lines,
+          ]);
         }
       } else {
         // normal run
@@ -218,7 +232,10 @@ const Sandbox = () => {
       const allSubtests = [];
       for (const groupName of Object.keys(tests)) {
         for (const subTestKey of Object.keys(tests[groupName])) {
-          allSubtests.push({ subTestKey, testData: tests[groupName][subTestKey] });
+          allSubtests.push({
+            subTestKey,
+            testData: tests[groupName][subTestKey],
+          });
         }
       }
 
@@ -237,7 +254,7 @@ const Sandbox = () => {
           resultLine = [
             `❌ ${subTestKey} => FAILED`,
             `Expected => ${expected.join(" | ")}`,
-            `Got => ${lines.join(" | ")}`
+            `Got => ${lines.join(" | ")}`,
           ].join("\n");
         }
         setOutput((prev) => [...prev, resultLine]);
@@ -247,10 +264,9 @@ const Sandbox = () => {
       const total = passCount + failCount;
       setOutput((prev) => [
         ...prev,
-        `=== Summary: ${passCount} passed | ${failCount} failed | ${total} total ===`
+        `=== Summary: ${passCount} passed | ${failCount} failed | ${total} total ===`,
       ]);
       setIsError(failCount > 0);
-
     } catch (error) {
       setIsError(true);
       setOutput([error.message || "Unable to run all tests"]);

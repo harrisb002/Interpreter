@@ -16,7 +16,7 @@ const TestSelector = ({
   tests,
   setCode,
   language,
-  onRunAllTests, // IMPORTANT: pass the run-all callback down
+  onRunAllTests,
 }) => {
   const menuDisabled = language !== "blue";
   const groupEntries = Object.entries(tests);
@@ -27,20 +27,18 @@ const TestSelector = ({
         Choose a Test:
       </Text>
       <Menu>
-        {/* Single test dropdown */}
         <MenuButton as={Button} isDisabled={menuDisabled} mr={2}>
           {menuDisabled
             ? "Tests Disabled (not blue)"
             : selectedTest || "No Current Test Selected"}
         </MenuButton>
 
-        {/* The 'Run All Tests' button next to the dropdown */}
         {language === "blue" && (
           <Button
             variant="outline"
             colorScheme="blue"
             mr={2}
-            onClick={onRunAllTests} // calls the parent callback
+            onClick={onRunAllTests}
           >
             Run All Tests
           </Button>
@@ -48,7 +46,9 @@ const TestSelector = ({
 
         <MenuList bg="#110c1b">
           {menuDisabled ? (
-            <MenuItem disabled>Switch language to 'blue' to select tests</MenuItem>
+            <MenuItem disabled>
+              Switch language to 'blue' to select tests
+            </MenuItem>
           ) : groupEntries.length > 0 ? (
             groupEntries.map(([groupName, subTests]) => (
               <MenuGroup key={groupName} title={groupName}>
@@ -58,7 +58,9 @@ const TestSelector = ({
                     <MenuItem
                       key={subTestKey}
                       color={subTestKey === selectedTest ? "blue.400" : ""}
-                      bg={subTestKey === selectedTest ? "gray.900" : "transparent"}
+                      bg={
+                        subTestKey === selectedTest ? "gray.900" : "transparent"
+                      }
                       _hover={{ color: "blue.400", bg: "gray.900" }}
                       onClick={() => onSelect(subTestKey, testObj.input)}
                     >

@@ -1,16 +1,9 @@
 import React from "react";
 import { Box, Text } from "@chakra-ui/react";
 
-/**
- * Output
- * - Purely displays the final output or errors
- */
-const Output = ({
-  output,
-  isError,
-}) => {
+const Output = ({ output, isError }) => {
   return (
-    <Box >
+    <Box>
       <Text mb={2} fontSize="lg">
         Output
       </Text>
